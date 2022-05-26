@@ -1033,11 +1033,12 @@ For more information, visit https://docs.nuget.org/docs/reference/command-line-r
     <value>This package is signed but not by a trusted signer.</value>
   </data>
   <data name="Warning_HttpServerUsage" xml:space="preserve">
-    <value>You are running the '{0}' operation with an 'http' source, '{1}'. Support for 'http' sources will be removed in a future version.</value>
+    <value>You are running the '{0}' operation with an 'HTTP' source, '{1}'. Non-HTTPS access will be removed in a future version. Consider migrating to an 'HTTPS' source.</value>
     <comment>0 - The command name. Ex. Push/Delete. 1 - server uri.</comment>
   </data>
-  <data name="Warning_HttpSource" xml:space="preserve">
-    <value>An 'HTTP' source, '{0}', was found. Support for 'HTTP' sources will be removed in a future version.</value>
-    <comment>0 - URI of the source</comment>
+  <data name="Warning_HttpServerUsage_MultipleSources" xml:space="preserve">
+    <value>You are running the '{0}' operation with 'HTTP' sources: {1}
+Non-HTTPS access will be removed in a future version. Consider migrating to 'HTTPS' sources.</value>
+    <comment>0 - The command name. Ex. Push/Delete. 1 - list of server uris</comment>
   </data>
 </root>
