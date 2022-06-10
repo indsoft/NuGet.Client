@@ -126,8 +126,7 @@ namespace NuGet.CommandLine
             }
 
             // update with solution as parameter
-            string solutionDir = Path.GetDirectoryName(inputFile);
-            await UpdateAllPackages(solutionDir, context);
+            await UpdateAllPackages(inputFile, context);
         }
 
         private async Task UpdateSelfAsync()
@@ -151,18 +150,26 @@ namespace NuGet.CommandLine
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private async Task UpdateAllPackages(string solutionDir, INuGetProjectContext projectContext)
+        private async Task UpdateAllPackages(string solutionFile, INuGetProjectContext projectContext)
         {
+            string solutionDir = Path.GetDirectoryName(solutionFile);
             Console.WriteLine(LocalizedResourceManager.GetString("ScanningForProjects"));
 
             // Search recursively for all packages.xxx.config files
-            string[] packagesConfigFiles = Directory.GetFiles(
-                solutionDir, "*.config", SearchOption.AllDirectories);
+            var packagesConfigFiles = Directory.EnumerateFiles(solutionDir, "*.config", SearchOption.AllDirectories); // TODO: we could ditch this search and rely only on solution file project references, but that could be a breaking change. needs further examination
+
+            // Append files from referenced projects outside of the solution folder
+            var solution = new Solution(solutionFile, _msbuildDirectory);
+            var extraPackagesConfigFiles = solution.Projects.Where(p => !p.IsSolutionFolder)
+                .Select(p => Path.GetDirectoryName(Path.GetFullPath(Path.Combine(solutionDir, p.RelativePath))))
+                .SelectMany(d => Directory.EnumerateFiles(d, "*.config", SearchOption.AllDirectories));
+
+            packagesConfigFiles = packagesConfigFiles.Concat(extraPackagesConfigFiles);
 
             var projects = packagesConfigFiles.Where(s => Path.GetFileName(s).StartsWith("packages.", StringComparison.OrdinalIgnoreCase))
+                                              .Distinct()
                                               .Select(s => GetProject(s, projectContext))
                                               .Where(p => p != null)
-                                              .Distinct()
                                               .ToList();
 
             if (projects.Count == 0)

@@ -173,6 +173,7 @@ namespace NuGet.CommandLine
                     assemblyName.Name,
                     version);
                 Console.WriteLine(message);
+                Console.WriteLine("*** IndSoft PATCH https://github.com/indsoft/NuGet.Client ***");
             }
         }
 
