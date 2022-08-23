@@ -62,6 +62,7 @@ namespace NuGet.Protocol
             _clientHandler.Credentials = _credentials;
             // Always take the credentials from the helper.
             _clientHandler.UseDefaultCredentials = false;
+            _clientHandler.PreAuthenticate = true;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
