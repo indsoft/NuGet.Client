@@ -10,7 +10,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
 using System.Threading.Tasks;
+using NuGet.CommandLine.Properties;
 using NuGet.Common;
 using NuGet.Credentials;
 using NuGet.Protocol;
@@ -173,7 +175,8 @@ namespace NuGet.CommandLine
                     assemblyName.Name,
                     version);
                 Console.WriteLine(message);
-                Console.WriteLine("*** IndSoft PATCH https://github.com/indsoft/NuGet.Client ***");
+                var buildDate = DateTime.ParseExact(Resources.BuildDate.Trim(), "o", DateTimeFormatInfo.InvariantInfo);
+                Console.WriteLine($"*** IndSoft PATCH {buildDate:yyyy-MM-dd} https://github.com/indsoft/NuGet.Client ***");
             }
         }
 

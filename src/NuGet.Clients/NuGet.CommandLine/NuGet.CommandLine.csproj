@@ -74,10 +74,19 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>NuGetCommand.resx</DependentUpon>
     </Compile>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <EmbeddedResource Update="NuGetResources.resx">
       <!-- Strings are shared by other projects, use public strings. -->
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>NuGetResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <Compile Update="NuGetResources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -91,6 +100,10 @@
       <Link>NuGet.targets</Link>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\" />
   </ItemGroup>
 
   <Target Name="DetermineILMergeNuGetExeInputsOutputs">
@@ -109,19 +122,13 @@
   <!-- 	Since we are moving some code and strings from NuGet.CommandLine to NuGet.Commands, we opted to go through normal localization process
         (build .resources.dll) and then add them to the ILMerged nuget.exe -->
   <!-- This will also be called from CI build, after assemblies are localized, since our test infra takes nuget.exe before Localization  -->
-  <Target Name="ILMergeNuGetExe"
-          AfterTargets="Build"
-          DependsOnTargets="DetermineILMergeNuGetExeInputsOutputs"
-          Inputs="$(PathToBuiltNuGetExe);@(BuildArtifacts);@(LocalizedArtifacts)"
-          Outputs="$(PathToMergedNuGetExe)"
-          Condition="'$(BuildingInsideVisualStudio)' != 'true' and '$(SkipILMergeOfNuGetExe)' != 'true'" >
+  <Target Name="ILMergeNuGetExe" AfterTargets="Build" DependsOnTargets="DetermineILMergeNuGetExeInputsOutputs" Inputs="$(PathToBuiltNuGetExe);@(BuildArtifacts);@(LocalizedArtifacts)" Outputs="$(PathToMergedNuGetExe)" Condition="'$(BuildingInsideVisualStudio)' != 'true' and '$(SkipILMergeOfNuGetExe)' != 'true'">
     <PropertyGroup>
       <!-- when done after build, no localizedartifacts are built yet, so expected localized artifact count is 0. -->
       <ExpectedLocalizedArtifactCount Condition="'$(ExpectedLocalizedArtifactCount)' == ''">0</ExpectedLocalizedArtifactCount>
     </PropertyGroup>
     <Error Text="Build dependencies are inconsistent with mergeinclude specified in ilmerge.props" Condition="'@(BuildArtifacts-&gt;Count())' != '@(MergeInclude-&gt;Count())'" />
-    <Error Text="Satellite assemblies count ILMerged into NuGet.exe should be $(ExpectedLocalizedArtifactCount), but was: @(LocalizedArtifacts-&gt;Count())"
-           Condition="'@(LocalizedArtifacts-&gt;Count())' != '$(ExpectedLocalizedArtifactCount)'" />
+    <Error Text="Satellite assemblies count ILMerged into NuGet.exe should be $(ExpectedLocalizedArtifactCount), but was: @(LocalizedArtifacts-&gt;Count())" Condition="'@(LocalizedArtifacts-&gt;Count())' != '$(ExpectedLocalizedArtifactCount)'" />
     <PropertyGroup>
       <IlmergeCommand>$(ILMergeExePath) /lib:$(OutputPath) /out:$(PathToMergedNuGetExe) @(MergeAllowDup -> '/allowdup:%(Identity)', ' ') /log:$(OutputPath)IlMergeLog.txt</IlmergeCommand>
       <IlmergeCommand Condition="Exists($(MS_PFX_PATH))">$(IlmergeCommand) /delaysign /keyfile:$(MS_PFX_PATH)</IlmergeCommand>
@@ -143,7 +150,7 @@
   </Target>
 
   <!-- Do nothing. This basically strips away the framework assemblies from the resulting nuspec.-->
-  <Target Name ="_GetFrameworkAssemblyReferences" DependsOnTargets="ResolveReferences"/>
+  <Target Name="_GetFrameworkAssemblyReferences" DependsOnTargets="ResolveReferences" />
 
   <Target Name="GetSigningInputs" Returns="@(DllsToSign)">
     <ItemGroup>
@@ -162,4 +169,8 @@
   </Target>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="powershell -Command &quot;((Get-Date).ToUniversalTime()).ToString(\&quot;o\&quot;) &gt;&quot;$(ProjectDir)\Resources\BuildDate.txt&quot;" />
+  </Target>
 </Project>
